@@ -49,7 +49,7 @@ def dehash(password, master):
 def requestmaster():
     master = getpass.getpass('Master key: ')
     while True:
-        if passwordsum(dehash(masterhash, master)) == int(checksum):
+        if accountsum(dehash(masterhash, master)) == int(checksum):
             break
         master = getpass.getpass('Incorrect. Master key: ')
     return master
@@ -60,7 +60,7 @@ def randompassword():
         password.append(random.randrange(96) + 32)
     return str(password, 'ascii')
 
-def passwordsum(password):
+def accountsum(password):
     bpassword = bytes(password, 'ascii')
     sum = 0
     for i in range(len(password)):
@@ -68,8 +68,8 @@ def passwordsum(password):
     return sum
 
 def searchaccounts(account):
-    for i in range(len(passwords)):
-        if passwords[i][0] == account:
+    for i in range(len(accounts)):
+        if accounts[i][0] == account:
             return i
     return None
 
@@ -77,12 +77,19 @@ def accountpassword(account):
     index = searchaccounts(account)
     if index is None:
         return None
-    return passwords[index][1]
+    return accounts[index][1]
 
 def dumpaccounts(file):
     for account in accounts:
         print(account[0], file=file)
         print(account[1], file=file)
+
+def dumpall():
+    file = open(path, 'w')
+    print(masterhash, file=file)
+    print(checksum, file=file)
+    dumpaccounts(file)
+    file.close()
 
 
 
@@ -97,7 +104,6 @@ def requestnewpassword(prompt):
     return password
 
 def requestnewmaster():
-    master = requestmaster()
     return requestnewpassword('master key')
 
 
@@ -105,7 +111,7 @@ def requestnewmaster():
 def passsetup():
     master = requestnewmaster()
     masterhash = randompassword()
-    checksum = passwordsum(masterhash)
+    checksum = accountsum(masterhash)
     file = open(path, 'w')
     print(hash(masterhash, master), file=file)
     print(checksum, file=file)
@@ -130,6 +136,28 @@ def addpassword(account):
     print(hash(password, master), file=file)
     file.close()
 
+def setmaster():
+    global masterhash, checksum
+    master = requestmaster()
+    newmaster = requestnewmaster()
+    masterhash = randompassword()
+    checksum = accountsum(masterhash)
+    masterhash = hash(masterhash, newmaster)
+    for i in range(len(accounts)):
+        accounts[i] = (accounts[i][0], hash(dehash(accounts[i][1], master), newmaster))
+    dumpall()
+
+def setpassword(account):
+    global accounts
+    master = requestmaster()
+    password = requestnewpassword('password for ' + account)
+    index = searchaccounts(account)
+    if not index:
+        print('No account named', account)
+        return
+    accounts[index] = (accounts[index][0], hash(password, master))
+    dumpall()
+
 
 
 def help():
@@ -152,13 +180,13 @@ if (not masterhash) or (not checksum):
         passsetup()
     exit()
 
-passwords = []
+accounts = []
 while True:
     account = file.readline().rstrip()
     password = file.readline().rstrip()
     if (not account) or (not password):
         break
-    passwords.append((account, password))
+    accounts.append((account, password))
 file.close()
 
 if len(sys.argv) == 1 or sys.argv[1] == 'help':
@@ -171,5 +199,10 @@ elif len(sys.argv) > 2:
             print("Cannot add password for account 'master'.")
             exit()
         addpassword(sys.argv[2])
+    elif sys.argv[1] == 'set':
+        if sys.argv[2] == 'master':
+            setmaster()
+        else:
+            setpassword(sys.argv[2])
 else:
     print("'" + sys.argv[1] + "'", ' is not a command. See ', "'" + sys.argv[0], "help' for more information.")

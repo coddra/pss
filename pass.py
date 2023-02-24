@@ -46,12 +46,12 @@ def dehash(password, master):
 
 
 
-def getmaster():
+def requestmaster():
     master = getpass.getpass('Master key: ')
     while True:
         if passwordsum(dehash(masterhash, master)) == int(checksum):
             break
-        master = getpass.getpass('Wrong. Master key: ')
+        master = getpass.getpass('Incorrect. Master key: ')
     return master
 
 def randompassword():
@@ -73,7 +73,7 @@ def searchaccounts(account):
             return i
     return None
 
-def getaccountpassword(account):
+def accountpassword(account):
     index = searchaccounts(account)
     if index is None:
         return None
@@ -86,23 +86,24 @@ def dumpaccounts(file):
 
 
 
-def newpassword(prompt):
+def requestnewpassword(prompt):
     password = getpass.getpass('New ' + prompt + ': ')
     while True:
         while len(password) < 8:
             password = getpass.getpass('Too short. New ' + prompt + ': ')
-        if password == getpass.getpass('New '+ prompt + ' again: '):
+        if password == getpass.getpass('Confirm '+ prompt + ': '):
             break
-        password = getpass.getpass('Not matching. New ' + prompt + ': ')
+        password = getpass.getpass('Incorrect. New ' + prompt + ': ')
     return password
 
-def newmaster():
-    return newpassword('master key')
+def requestnewmaster():
+    master = requestmaster()
+    return requestnewpassword('master key')
 
 
 
 def passsetup():
-    master = newmaster()
+    master = requestnewmaster()
     masterhash = randompassword()
     checksum = passwordsum(masterhash)
     file = open(path, 'w')
@@ -111,19 +112,19 @@ def passsetup():
     file.close()
 
 def getpassword(account):
-    master = getmaster()
-    password = getaccountpassword(account)
+    master = requestmaster()
+    password = accountpassword(account)
     if not password:
         print('No account named', account)
         return
     clipboard.copy(dehash(password, master))
 
 def addpassword(account):
-    master = getmaster()
-    if prompt('Generate new password?'):
+    master = requestmaster()
+    if prompt('Generate new password automatically?'):
         password = randompassword()
     else:
-        password = newpassword('password for ' + account)
+        password = requestnewpassword('password for ' + account)
     file = open(path, 'a')
     print(account, file=file)
     print(hash(password, master), file=file)
@@ -171,4 +172,4 @@ elif len(sys.argv) > 2:
             exit()
         addpassword(sys.argv[2])
 else:
-    print(sys.argv[1], 'is not a command. See', sys.argv[0], 'for more information.')
+    print("'" + sys.argv[1] + "'", ' is not a command. See ', "'" + sys.argv[0], "help' for more information.")

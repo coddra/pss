@@ -164,6 +164,15 @@ def setcommand(account):
     else:
         setpassword(account)
 
+def deleteaccount(account):
+    requestmaster()
+    index = searchaccounts(account)
+    if not index:
+        print('No account named', account)
+        return
+    del(accounts[index])
+    dumpdata()
+
 
 
 def usage(command):
@@ -191,6 +200,7 @@ def helpcommand():
 
 commands = {
     'add': ('account', addpassword, 'Add a new account and adherent password'),
+    'del': ('account', deleteaccount, 'Remove account and adherent password'),
     'get': ('account', getpassword, 'Copy the password to clipboard'),
     'set': ('account', setcommand, 'Change the password of an account'),
     'help': (None, helpcommand, 'Display this help message')

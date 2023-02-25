@@ -106,6 +106,8 @@ def requestnewmaster():
 
 
 def passsetup():
+    print('Provide the master key. You will be able to access your passwords through this.')
+    print('It is not going to be stored anywhere and will be impossible to retrieve.')
     master = requestnewmaster()
     masterhash = randompassword()
     checksum = accountsum(masterhash)
@@ -113,6 +115,7 @@ def passsetup():
     print(hash(masterhash, master), file=file)
     print(checksum, file=file)
     file.close()
+    print("Pass is now set up. Run 'pass help' for usage.")
 
 def getpassword(account):
     password = accountpassword(account)
@@ -207,22 +210,6 @@ commands = {
     'help': (None, helpcommand, 'Display this help message')
 }
 
-if len(sys.argv) == 1 or sys.argv[1] == 'help':
-    helpcommand()
-    exit()
-
-
-if not sys.argv[1] in commands:
-    print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
-    exit()
-
-if len(sys.argv) == 2 and commands[sys.argv[1]][0]:
-    print('Usage:', sys.argv[0], usage(sys.argv[1]))
-    print(seehelp())
-    exit()
-
-
-
 path = '/home/' + getpass.getuser() + '/.config/pass.words'
 
 
@@ -239,6 +226,24 @@ if (not masterhash) or (not checksum):
     if prompt('Pass is not set up. Set up now?'):
         passsetup()
     exit()
+
+
+
+if len(sys.argv) == 1 or sys.argv[1] == 'help':
+    helpcommand()
+    exit()
+
+
+if not sys.argv[1] in commands:
+    print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
+    exit()
+
+if len(sys.argv) == 2 and commands[sys.argv[1]][0]:
+    print('Usage:', sys.argv[0], usage(sys.argv[1]))
+    print(seehelp())
+    exit()
+
+
 
 accounts = []
 while True:

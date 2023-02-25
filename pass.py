@@ -79,16 +79,13 @@ def accountpassword(account):
         return None
     return accounts[index][1]
 
-def dumpaccounts(file):
-    for account in accounts:
-        print(account[0], file=file)
-        print(account[1], file=file)
-
-def dumpall():
+def dumpdata():
     file = open(path, 'w')
     print(masterhash, file=file)
     print(checksum, file=file)
-    dumpaccounts(file)
+    for account in accounts:
+        print(account[0], file=file)
+        print(account[1], file=file)
     file.close()
 
 
@@ -126,6 +123,9 @@ def getpassword(account):
     clipboard.copy(dehash(password, master))
 
 def addpassword(account):
+    if account == 'master':
+        print("Cannot add password for account 'master'.")
+        exit()
     master = requestmaster()
     if prompt('Generate new password automatically?'):
         password = randompassword()
@@ -145,7 +145,7 @@ def setmaster():
     masterhash = hash(masterhash, newmaster)
     for i in range(len(accounts)):
         accounts[i] = (accounts[i][0], hash(dehash(accounts[i][1], master), newmaster))
-    dumpall()
+    dumpdata()
 
 def setpassword(account):
     global accounts
@@ -156,16 +156,65 @@ def setpassword(account):
         print('No account named', account)
         return
     accounts[index] = (accounts[index][0], hash(password, master))
-    dumpall()
+    dumpdata()
+
+def setcommand(account):
+    if account == 'master':
+        setmaster()
+    else:
+        setpassword(account)
 
 
 
-def help():
-    print('Help')
+def usage(command):
+    return command + ' [' + commands[command][0] + ']'
+
+def seehelp():
+    return "See '" + sys.argv[0] + " help' for more information."
+
+def helpof(command):
+    result = '   ' + command
+    if commands[command][0]:
+        result += ' <' + commands[command][0] + '>'
+    else:
+        result += '         '
+    return result + '      ' + commands[command][2]
+
+def helpcommand():
+    print('Usage:', sys.argv[0], '<command> [arg]')
+    print()
+    print('Avaible commands:')
+    for command in commands:
+        print(helpof(command))
+
+
+
+commands = {
+    'add': ('account', addpassword, 'Add a new account and adherent password'),
+    'get': ('account', getpassword, 'Copy the password to clipboard'),
+    'set': ('account', setcommand, 'Change the password of an account'),
+    'help': (None, helpcommand, 'Display this help message')
+}
+
+if len(sys.argv) == 1 or sys.argv[1] == 'help':
+    helpcommand()
+    exit()
+
+
+if not sys.argv[1] in commands:
+    print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
+    exit()
+
+if len(sys.argv) == 2:
+    print('Usage:', sys.argv[0], usage(sys.argv[1]))
+    print(seehelp())
+    exit()
 
 
 
 path = '/home/' + getpass.getuser() + '/.config/pass.words'
+
+
 
 if not os.path.isfile(path):
     touch(path)
@@ -189,20 +238,6 @@ while True:
     accounts.append((account, password))
 file.close()
 
-if len(sys.argv) == 1 or sys.argv[1] == 'help':
-    help()
-elif len(sys.argv) > 2:
-    if sys.argv[1] == 'get':
-        getpassword(sys.argv[2])
-    elif sys.argv[1] == 'add':
-        if sys.argv[2] == 'master':
-            print("Cannot add password for account 'master'.")
-            exit()
-        addpassword(sys.argv[2])
-    elif sys.argv[1] == 'set':
-        if sys.argv[2] == 'master':
-            setmaster()
-        else:
-            setpassword(sys.argv[2])
-else:
-    print("'" + sys.argv[1] + "'", ' is not a command. See ', "'" + sys.argv[0], "help' for more information.")
+
+
+commands[sys.argv[1]][1](sys.argv[2])

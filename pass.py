@@ -203,6 +203,7 @@ commands = {
     'del': ('account', deleteaccount, 'Remove account and adherent password'),
     'get': ('account', getpassword, 'Copy the password to clipboard'),
     'set': ('account', setcommand, 'Change the password of an account'),
+    'safe': (None, lambda: clipboard.copy(''), 'Clear clipboard'),
     'help': (None, helpcommand, 'Display this help message')
 }
 
@@ -215,7 +216,7 @@ if not sys.argv[1] in commands:
     print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
     exit()
 
-if len(sys.argv) == 2:
+if len(sys.argv) == 2 and commands[sys.argv[1]][0]:
     print('Usage:', sys.argv[0], usage(sys.argv[1]))
     print(seehelp())
     exit()
@@ -249,5 +250,7 @@ while True:
 file.close()
 
 
-
-commands[sys.argv[1]][1](sys.argv[2])
+if commands[sys.argv[1]][0]:
+    commands[sys.argv[1]][1](sys.argv[2])
+else:
+    commands[sys.argv[1]][1]()

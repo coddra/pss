@@ -115,11 +115,11 @@ def passsetup():
     file.close()
 
 def getpassword(account):
-    master = requestmaster()
     password = accountpassword(account)
     if not password:
         print('No account named', account)
         return
+    master = requestmaster()
     clipboard.copy(dehash(password, master))
 
 def addpassword(account):
@@ -149,12 +149,12 @@ def setmaster():
 
 def setpassword(account):
     global accounts
-    master = requestmaster()
-    password = requestnewpassword('password for ' + account)
     index = searchaccounts(account)
     if not index:
         print('No account named', account)
         return
+    master = requestmaster()
+    password = requestnewpassword('password for ' + account)
     accounts[index] = (accounts[index][0], hash(password, master))
     dumpdata()
 
@@ -165,11 +165,11 @@ def setcommand(account):
         setpassword(account)
 
 def deleteaccount(account):
-    requestmaster()
     index = searchaccounts(account)
     if not index:
         print('No account named', account)
         return
+    requestmaster()
     del(accounts[index])
     dumpdata()
 

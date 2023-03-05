@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
 cd "$(dirname "$0")"
-sudo cp ./pass.py /bin/pass
+poetry build
+pip install -e .

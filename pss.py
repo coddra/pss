@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import getpass
 import os
 import sys
 import getpass
@@ -213,49 +212,53 @@ commands = {
 path = '/home/' + getpass.getuser() + '/.config/pass.words'
 
 
+def main():
+    global masterhash, checksum, accounts
+    if not os.path.isfile(path):
+        touch(path)
 
-if not os.path.isfile(path):
-    touch(path)
+    file = open(path)
+    masterhash = file.readline().rstrip()
+    checksum = file.readline().rstrip()
 
-file = open(path)
-masterhash = file.readline().rstrip()
-checksum = file.readline().rstrip()
+    if (not masterhash) or (not checksum):
+        file.close()
+        if prompt('Pass is not set up. Set up now?'):
+            passsetup()
+        exit()
 
-if (not masterhash) or (not checksum):
+
+
+    if len(sys.argv) == 1 or sys.argv[1] == 'help':
+        helpcommand()
+        exit()
+
+
+    if not sys.argv[1] in commands:
+        print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
+        exit()
+
+    if len(sys.argv) == 2 and commands[sys.argv[1]][0]:
+        print('Usage:', sys.argv[0], usage(sys.argv[1]))
+        print(seehelp())
+        exit()
+
+
+
+    accounts = []
+    while True:
+        account = file.readline().rstrip()
+        password = file.readline().rstrip()
+        if (not account) or (not password):
+            break
+        accounts.append((account, password))
     file.close()
-    if prompt('Pass is not set up. Set up now?'):
-        passsetup()
-    exit()
 
 
+    if commands[sys.argv[1]][0]:
+        commands[sys.argv[1]][1](sys.argv[2])
+    else:
+        commands[sys.argv[1]][1]()
 
-if len(sys.argv) == 1 or sys.argv[1] == 'help':
-    helpcommand()
-    exit()
-
-
-if not sys.argv[1] in commands:
-    print("'" + sys.argv[1] + "'", 'is not a command.', seehelp())
-    exit()
-
-if len(sys.argv) == 2 and commands[sys.argv[1]][0]:
-    print('Usage:', sys.argv[0], usage(sys.argv[1]))
-    print(seehelp())
-    exit()
-
-
-
-accounts = []
-while True:
-    account = file.readline().rstrip()
-    password = file.readline().rstrip()
-    if (not account) or (not password):
-        break
-    accounts.append((account, password))
-file.close()
-
-
-if commands[sys.argv[1]][0]:
-    commands[sys.argv[1]][1](sys.argv[2])
-else:
-    commands[sys.argv[1]][1]()
+if __name__ == '__main__':
+    main()

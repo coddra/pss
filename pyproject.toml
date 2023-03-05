@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "pss"
+version = "0.1.0"
+description = "Simple commandline password manager"
+authors = ["Coddra <andrew.reeds.mpg@gmail.com>"]
+license = "The Unlicense"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+clipboard = "^0.0.4"
+
+[tool.poetry.scripts]
+pss = "pss:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
